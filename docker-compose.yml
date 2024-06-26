@@ -1,0 +1,73 @@
+version: '3.6'
+services:
+  host:
+    container_name: ${HOST_CONTAINER_NAME}
+    hostname: ${HOST_NAME}
+    image: ${HOST_CONTAINER_IMAGE}
+    restart: unless-stopped
+    build:
+      context: ./app
+      dockerfile: DockerfileHost
+    command: ${NODE_START_CMD}
+    volumes:
+      - ./${DOCUMENT_ROOT}:/usr/app/
+      - nodemodules:/usr/app/node_modules
+    networks:
+      - network
+    ports:
+      - "127.0.0.1:${HOST_PORT}:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      NODE_CLUSTERS: ${NODE_CLUSTERS}
+      HOST_NAME: ${HOST_NAME}
+      HOST_CONTAINER_NAME: ${HOST_CONTAINER_NAME}
+      CRON_TIMEOUT: ${CRON_TIMEOUT}
+      NETWORK_PRIMARY_ENCRYPTION_KEY: ${NETWORK_PRIMARY_ENCRYPTION_KEY}
+      NETWORK_MINOR_ENCRYPTION_KEY: ${NETWORK_MINOR_ENCRYPTION_KEY}
+      NETWORK_SUPER_USER_PASSPHRASE: ${NETWORK_SUPER_USER_PASSPHRASE}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DEFAULT_LOADINGDOCK_URL: ${DEFAULT_LOADINGDOCK_URL}
+  mongodb:
+    container_name: ${DB_CONTAINER_NAME}
+    image: ${DB_CONTAINER_IMAGE}
+    restart: unless-stopped
+    build:
+      context: ./app
+      dockerfile: DockerfileMongo
+    command: [--auth]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${DB_DATABASE}
+    networks:
+      - network
+    ports:
+      - "127.0.0.1:${DB_PORT}:27017"
+    volumes:
+      - mongodb_data:/data/db
+  dbadmin:
+    container_name: ${DBADMIN_CONTAINER_NAME}
+    image: mongo-express:1.0.2-20
+    restart: unless-stopped
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${DB_USER}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${DB_PASSWORD}
+      - ME_CONFIG_MONGODB_URL=mongodb://${DB_USER}:${DB_PASSWORD}@mongodb:27017/${DB_DATABASE}?authSource=admin
+      - ME_CONFIG_BASICAUTH_USERNAME=${DB_USER}
+      - ME_CONFIG_BASICAUTH_PASSWORD=${DB_PASSWORD}
+    links:
+        - mongodb
+    networks:
+      - network
+    ports:
+      - "127.0.0.1:${DBDBADMIN_PORT}:8081"
+volumes:
+  mongodb_data:
+    name: ${HOST_CONTAINER_NAME}-mongodb-data
+  nodemodules:
+    name: ${HOST_CONTAINER_NAME}-node-modules
+networks:
+  network:
+    driver: bridge

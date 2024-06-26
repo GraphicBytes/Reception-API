@@ -1,0 +1,24 @@
+{
+"name": "cloud_reception_api",
+"version": "0.1.0",
+"private": true,
+"type": "module",
+"scripts": {
+    "start": "nodemon server.js",
+    "start-development": "nodemon server.js",
+    "start-staging": "node server.js",
+    "start-production": "node server.js"
+  },
+"dependencies": { 
+    "express": "^4.16.4",
+    "mongoose": "^5.4.10",
+    "bcrypt": "^5.1.0",
+    "multer": "^1.4.5-lts.1",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "axios": "^1.4.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.10"
+  }    
+}
